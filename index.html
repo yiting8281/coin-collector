@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🪙 壓幣珍藏誌 - 免手動刷新版</title>
+  <title>🪙 壓幣珍藏誌 - 潔淨管理版</title>
 
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -30,38 +30,64 @@
 
     <div class="flex flex-1 overflow-hidden">
       
-      <aside class="w-72 bg-white border-r p-4 flex flex-col gap-1 overflow-y-auto">
-        <div class="flex justify-between items-center mb-3 px-2">
-          <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">分類管理</h2>
-          <button @click="isCatModalOpen = true" class="text-xs bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded font-medium transition">
-            ➕ 新增分類
+      <aside class="w-72 bg-white border-r p-4 flex flex-col gap-1 overflow-y-auto select-none">
+        <div class="flex justify-between items-center mb-3 px-2 h-8">
+          <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">分類快選</h2>
+          
+          <button 
+            @click="isEditMode = !isEditMode" 
+            :class="isEditMode ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'"
+            class="text-xs px-2 py-1 rounded font-medium border transition flex items-center gap-1"
+          >
+            <span x-text="isEditMode ? '✅ 完成' : '⚙️ 整理分類'"></span>
+          </button>
+        </div>
+
+        <div x-show="isEditMode" x-transition class="mb-2 px-1">
+          <button 
+            @click="isCatModalOpen = true" 
+            class="w-full text-center text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-600 py-2 rounded-lg font-semibold transition border border-dashed border-indigo-200"
+          >
+            ➕ 新增全新分類
           </button>
         </div>
         
         <button
-          @click="selectedCategory = '全部'"
+          @click="if(!isEditMode) selectedCategory = '全部'"
           :class="selectedCategory === '全部' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-100'"
-          class="w-full flex justify-between items-center px-3 py-2.5 rounded-lg text-sm font-medium transition mb-2"
+          :disabled="isEditMode"
+          class="w-full flex justify-between items-center px-3 py-2.5 rounded-lg text-sm font-medium transition mb-1 disabled:opacity-50"
         >
           <span class="flex items-center gap-2">🌍 全部收藏</span>
           <span class="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500" x-text="coins.length"></span>
         </button>
 
-        <div class="border-t my-2 border-gray-100"></div>
+        <div class="border-t my-1 border-gray-100"></div>
 
         <template x-for="cat in categories" :key="cat">
           <div 
-            :class="selectedCategory === cat ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'"
-            class="w-full flex justify-between items-center px-3 py-2 rounded-lg text-sm font-medium transition"
+            :class="selectedCategory === cat && !isEditMode ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'"
+            class="w-full flex justify-between items-center px-3 py-2 rounded-lg text-sm font-medium transition h-10"
           >
-            <button @click="selectedCategory = cat" class="flex-1 text-left py-0.5 flex items-center gap-2 overflow-hidden">
+            <button 
+              @click="if(!isEditMode) selectedCategory = cat" 
+              :disabled="isEditMode"
+              class="flex-1 text-left py-0.5 flex items-center gap-2 overflow-hidden disabled:cursor-default"
+            >
               <span class="truncate" x-text="'📁 ' + cat"></span>
             </button>
             
-            <div class="flex items-center gap-1 shrink-0">
-              <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 mr-1" x-text="getCategoryCount(cat)"></span>
-              <button @click.stop="editCategoryPrompt(cat)" class="text-gray-400 hover:text-indigo-600 text-xs p-1 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200" title="修改名稱">✏️</button>
-              <button @click.stop="deleteCategory(cat)" class="text-gray-400 hover:text-red-600 text-xs p-1 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200" title="刪除分類">❌</button>
+            <div class="flex items-center shrink-0">
+              <span 
+                x-show="!isEditMode" 
+                class="text-xs px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-400" 
+                x-text="getCategoryCount(cat)"
+              ></span>
+              
+              <div x-show="isEditMode" class="flex items-center gap-1" x-transition>
+                <button @click.stop="editCategoryPrompt(cat)" class="text-gray-500 hover:text-indigo-600 text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 transition" title="修改名稱">✏️ 改名</button>
+                <button @click.stop="deleteCategory(cat)" class="text-gray-500 hover:text-red-600 text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 transition" title="刪除分類">❌ 刪除</button>
+              </div>
             </div>
           </div>
         </template>
@@ -225,58 +251,4 @@
 
     <div x-show="isCatModalOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" style="display: none;">
       <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden" @click.away="isCatModalOpen = false">
-        <div class="px-5 py-3 border-b flex justify-between items-center bg-gray-50">
-          <h3 class="font-bold text-gray-700 text-sm">➕ 建立新分類</h3>
-          <button @click="isCatModalOpen = false" class="text-gray-400 hover:text-gray-600 text-lg">×</button>
-        </div>
-        <div class="p-5 flex flex-col gap-3">
-          <input 
-            type="text" x-model="newCatInput" placeholder="例如：鐵道系列、歐洲行" 
-            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            @keyup.enter="addNewCategory()"
-          />
-          <div class="flex justify-end gap-2 text-sm">
-            <button @click="isCatModalOpen = false" class="px-3 py-1.5 border rounded text-gray-500 hover:bg-gray-50">取消</button>
-            <button @click="addNewCategory()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow-sm font-medium">確認新增</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <script>
-    function coinApp() {
-      return {
-        isOpen: false,
-        isNewCat: false,
-        isDetailOpen: false,
-        isCatModalOpen: false, 
-        newCatInput: '',       
-        selectedCategory: '全部',
-        categories: [],
-        coins: [],
-        form: { title: '', category: '', newCategory: '', location: '', notes: '', image: '' },
-        detailCoin: { id: '', title: '', category: '', location: '', notes: '', date: '', image: '' },
-
-        init() {
-          const savedCategories = localStorage.getItem('coin_categories');
-          const savedCoins = localStorage.getItem('coin_data');
-          
-          this.categories = savedCategories ? JSON.parse(savedCategories) : ['台灣', '日本', '遊樂園', '博物館'];
-          this.coins = savedCoins ? JSON.parse(savedCoins) : [];
-          
-          if (!Array.isArray(this.categories) || this.categories.length === 0) {
-            this.categories = ['台灣', '日本', '遊樂園', '博物館'];
-          }
-          this.form.category = this.categories[0];
-          this.saveToStorage();
-        },
-
-        saveToStorage() {
-          localStorage.setItem('coin_categories', JSON.stringify(this.categories));
-          localStorage.setItem('coin_data', JSON.stringify(this.coins));
-        },
-
-        addNewCategory() {
-          if (this.newCatInput && this.newCatInput.trim()) {
+        <div class="px-5 py-3 border-b flex justify-between
