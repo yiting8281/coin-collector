@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🪙 壓幣珍藏誌 - 分類直覺管理版</title>
+  <title>🪙 壓幣珍藏誌 - 免手動刷新版</title>
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -55,7 +60,6 @@
             
             <div class="flex items-center gap-1 shrink-0">
               <span class="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 mr-1" x-text="getCategoryCount(cat)"></span>
-              
               <button @click.stop="editCategoryPrompt(cat)" class="text-gray-400 hover:text-indigo-600 text-xs p-1 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200" title="修改名稱">✏️</button>
               <button @click.stop="deleteCategory(cat)" class="text-gray-400 hover:text-red-600 text-xs p-1 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200" title="刪除分類">❌</button>
             </div>
@@ -247,8 +251,8 @@
         isOpen: false,
         isNewCat: false,
         isDetailOpen: false,
-        isCatModalOpen: false, // 控制新增分類的小視窗
-        newCatInput: '',       // 新增分類輸入框狀態
+        isCatModalOpen: false, 
+        newCatInput: '',       
         selectedCategory: '全部',
         categories: [],
         coins: [],
@@ -256,7 +260,6 @@
         detailCoin: { id: '', title: '', category: '', location: '', notes: '', date: '', image: '' },
 
         init() {
-          // 讀取既有或給予預設
           const savedCategories = localStorage.getItem('coin_categories');
           const savedCoins = localStorage.getItem('coin_data');
           
@@ -275,112 +278,5 @@
           localStorage.setItem('coin_data', JSON.stringify(this.coins));
         },
 
-        // 正式新增左側分類
         addNewCategory() {
           if (this.newCatInput && this.newCatInput.trim()) {
-            const name = this.newCatInput.trim();
-            if (!this.categories.includes(name)) {
-              this.categories.push(name);
-              this.saveToStorage();
-              this.newCatInput = '';
-              this.isCatModalOpen = false;
-            } else { alert("這個分類已經存在囉！"); }
-          }
-        },
-
-        openDetailModal(coin) {
-          this.detailCoin = { ...coin };
-          this.isDetailOpen = true;
-        },
-
-        updateCoinNotes(id, newNotes) {
-          const coin = this.coins.find(c => c.id === id);
-          if (coin) {
-            coin.notes = newNotes;
-            this.saveToStorage();
-          }
-        },
-
-        openAddModal() {
-          this.form.category = this.categories[0] || '台灣';
-          this.isOpen = true;
-        },
-
-        editCategoryPrompt(oldName) {
-          const newName = prompt(`要把「${oldName}」分類修改為什麼名稱？`, oldName);
-          if (newName && newName.trim() && newName.trim() !== oldName) {
-            const trimmed = newName.trim();
-            const index = this.categories.indexOf(oldName);
-            if (index !== -1) this.categories[index] = trimmed;
-            this.coins.forEach(coin => { if (coin.category === oldName) coin.category = trimmed; });
-            if (this.selectedCategory === oldName) this.selectedCategory = trimmed;
-            this.saveToStorage();
-          }
-        },
-
-        deleteCategory(catName) {
-          const coinCount = this.getCategoryCount(catName);
-          let confirmMsg = `確定要刪除「${catName}」分類嗎？`;
-          if (coinCount > 0) confirmMsg = `「${catName}」分類下還有 ${coinCount} 個壓幣，刪除後將歸為「未分類」。確定刪除？`;
-          
-          if (confirm(confirmMsg)) {
-            this.categories = this.categories.filter(c => c !== catName);
-            this.coins.forEach(coin => { if (coin.category === catName) coin.category = '未分類'; });
-            if (coinCount > 0 && !this.categories.includes('未分類')) this.categories.push('未分類');
-            if (this.selectedCategory === catName) this.selectedCategory = '全部';
-            this.saveToStorage();
-          }
-        },
-
-        deleteCoin(id) {
-          if (confirm("確定要刪除這枚壓幣的收藏紀錄嗎？")) {
-            this.coins = this.coins.filter(c => c.id !== id);
-            this.saveToStorage();
-            this.isDetailOpen = false;
-          }
-        },
-
-        handleImageUpload(event) {
-          const file = event.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => { this.form.image = e.target.result; };
-            reader.readAsDataURL(file);
-          }
-        },
-
-        getCategoryCount(category) {
-          return this.coins.filter(c => c.category === category).length;
-        },
-
-        filteredCoins() {
-          if (this.selectedCategory === '全部') return this.coins;
-          return this.coins.filter(c => c.category === this.selectedCategory);
-        },
-
-        saveCoin() {
-          const finalCategory = this.isNewCat ? this.form.newCategory : this.form.category;
-          if (this.isNewCat && this.form.newCategory && !this.categories.includes(this.form.newCategory)) {
-            this.categories.push(this.form.newCategory);
-          }
-
-          this.coins.push({
-            id: Date.now(),
-            title: this.form.title,
-            category: finalCategory,
-            location: this.form.location,
-            notes: this.form.notes || '',
-            date: new Date().toISOString().split('T')[0],
-            image: this.form.image
-          });
-
-          this.saveToStorage();
-          this.isOpen = false;
-          this.isNewCat = false;
-          this.form = { title: '', category: this.categories[0] || '台灣', newCategory: '', location: '', notes: '', image: '' };
-        }
-      }
-    }
-  </script>
-</body>
-</html>
