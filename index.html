@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🪙 壓幣珍藏誌 - 詳細備註與地圖版</title>
+  <title>🪙 壓幣珍藏誌 - 修復穩定版</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -74,7 +74,7 @@
               @click="openDetailModal(coin)"
               class="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition relative group/card cursor-pointer"
             >
-              <button @click.stop="deleteCoin(coin.id)" class="absolute top-2 right-2 bg-black/50 hover:bg-red-600 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition z-10">&times;</button>
+              <button @click.stop="deleteCoin(coin.id)" class="absolute top-2 right-2 bg-black/50 hover:bg-red-600 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition z-10">×</button>
               
               <div class="h-48 bg-gray-200 flex items-center justify-center overflow-hidden border-b">
                 <template x-if="coin.image">
@@ -92,79 +92,4 @@
                 <p class="text-sm text-gray-500 truncate flex items-center gap-1">
                   <span>📍</span> <span x-text="coin.location"></span>
                 </p>
-                <p class="text-xs text-gray-400 truncate italic" x-text="coin.notes ? '💬 ' + coin.notes : '無備註'"></p>
-              </div>
-            </div>
-          </template>
-        </div>
-      </main>
-    </div>
-
-    <div x-show="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" style="display: none;">
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden" @click.away="isOpen = false">
-        <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-          <h3 class="font-bold text-gray-700">記錄我的全新壓幣</h3>
-          <button @click="isOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-        </div>
-        
-        <form class="p-6 flex flex-col gap-4" @submit.prevent="saveCoin()">
-          <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1">壓幣標題</label>
-            <input type="text" required x-model="form.title" placeholder="例如：金瓜石黃金博物館-礦工款" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-          </div>
-
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="block text-sm font-medium text-gray-600">選擇分類</label>
-              <button type="button" @click="isNewCat = !isNewCat" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium" x-text="isNewCat ? '⬅️ 選取現有分類' : '➕ 自訂新分類'"></button>
-            </div>
-            <div x-show="isNewCat">
-              <input type="text" x-model="form.newCategory" :required="isNewCat" placeholder="請輸入新分類名稱" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-            </div>
-            <div x-show="!isNewCat">
-              <select x-model="form.category" class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <template x-for="cat in categories" :key="cat">
-                  <option :value="cat" x-text="cat"></option>
-                </template>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1">在哪裡壓的？（記錄地點）</label>
-            <input type="text" required x-model="form.location" placeholder="例如：新北市瑞芳區黃金博物館" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1">新增備註（選填）</label>
-            <textarea x-model="form.notes" rows="2" placeholder="寫下當時的心情、和誰一起去、或是機台的具體位置..." class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1">上傳壓幣照片</label>
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-500 transition cursor-pointer bg-gray-50 relative">
-              <input type="file" accept="image/*" class="hidden" id="coin-upload" @change="handleImageUpload($event)" />
-              <label htmlFor="coin-upload" class="cursor-pointer text-sm text-gray-500 flex flex-col items-center gap-1">
-                <span x-show="!form.image">📸 點擊這裡選擇照片</span>
-                <img x-show="form.image" :src="form.image" class="max-h-32 object-contain rounded-md shadow-sm">
-                <span x-show="form.image" class="text-xs text-indigo-500 underline mt-1">更換照片</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="flex gap-3 justify-end mt-2">
-            <button type="button" @click="isOpen = false" class="px-4 py-2 border rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">取消</button>
-            <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm">確認儲存</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div x-show="isDetailOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" style="display: none;">
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-fade-in" @click.away="isDetailOpen = false">
-        
-        <div class="h-64 bg-gray-900 flex items-center justify-center relative">
-          <template x-if="detailCoin.image">
-            <img :src="detailCoin.image" class="w-full h-full object-contain">
-          </template>
-          <template x-if="!detailCoin.image
+                <p class="text-xs text-gray-400 truncate italic" x-text="coin.notes ?
