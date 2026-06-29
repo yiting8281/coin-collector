@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🪙 壓幣珍藏誌 - 潔淨管理版</title>
+  <title>🪙 壓幣珍藏誌 - 全功能卡片編輯版</title>
 
+  <!-- 免快取指令 -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -16,6 +17,7 @@
 
   <div class="flex flex-col h-screen">
     
+    <!-- 頂部導覽列 -->
     <header class="flex justify-between items-center px-6 py-4 bg-white shadow-sm border-b">
       <h1 class="text-xl font-bold flex items-center gap-2">
         <span>🪙</span> 壓幣珍藏誌 Coin Collector
@@ -28,12 +30,13 @@
       </button>
     </header>
 
+    <!-- 下方主要內容區（雙欄佈局） -->
     <div class="flex flex-1 overflow-hidden">
       
+      <!-- 左邊選項欄：分類管理 -->
       <aside class="w-72 bg-white border-r p-4 flex flex-col gap-1 overflow-y-auto select-none">
         <div class="flex justify-between items-center mb-3 px-2 h-8">
           <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">分類快選</h2>
-          
           <button 
             @click="isEditMode = !isEditMode" 
             :class="isEditMode ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'"
@@ -78,21 +81,17 @@
             </button>
             
             <div class="flex items-center shrink-0">
-              <span 
-                x-show="!isEditMode" 
-                class="text-xs px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-400" 
-                x-text="getCategoryCount(cat)"
-              ></span>
-              
+              <span x-show="!isEditMode" class="text-xs px-1.5 py-0.5 rounded-full bg-gray-50 text-gray-400" x-text="getCategoryCount(cat)"></span>
               <div x-show="isEditMode" class="flex items-center gap-1" x-transition>
-                <button @click.stop="editCategoryPrompt(cat)" class="text-gray-500 hover:text-indigo-600 text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 transition" title="修改名稱">✏️ 改名</button>
-                <button @click.stop="deleteCategory(cat)" class="text-gray-500 hover:text-red-600 text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 transition" title="刪除分類">❌ 刪除</button>
+                <button @click.stop="editCategoryPrompt(cat)" class="text-gray-500 hover:text-indigo-600 text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 transition">✏️ 改名</button>
+                <button @click.stop="deleteCategory(cat)" class="text-gray-500 hover:text-red-600 text-xs px-2 py-1 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200 transition">❌ 刪除</button>
               </div>
             </div>
           </div>
         </template>
       </aside>
 
+      <!-- 右邊主內容區 -->
       <main class="flex-1 p-6 overflow-y-auto bg-gray-100">
         <div class="mb-6">
           <h2 class="text-lg font-semibold text-gray-700">
@@ -105,6 +104,7 @@
             目前這個分類還沒有壓幣，點擊右上角按鈕開始記錄吧！
           </div>
 
+          <!-- 壓幣卡片 -->
           <template x-for="coin in filteredCoins()" :key="coin.id">
             <div 
               @click="openDetailModal(coin)"
@@ -136,6 +136,7 @@
       </main>
     </div>
 
+    <!-- 1️⃣ 彈出式：新增壓幣視窗 -->
     <div x-show="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" style="display: none;">
       <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden" @click.away="isOpen = false">
         <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
@@ -179,7 +180,7 @@
           <div>
             <label class="block text-sm font-medium text-gray-600 mb-1">上傳壓幣照片</label>
             <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-500 transition cursor-pointer bg-gray-50 relative">
-              <input type="file" accept="image/*" class="hidden" id="coin-upload" @change="handleImageUpload($event)" />
+              <input type="file" accept="image/*" class="hidden" id="coin-upload" @change="handleImageUpload($event, 'form')" />
               <label htmlFor="coin-upload" class="cursor-pointer text-sm text-gray-500 flex flex-col items-center gap-1">
                 <span x-show="!form.image">📸 點擊這裡選擇照片</span>
                 <img x-show="form.image" :src="form.image" class="max-h-32 object-contain rounded-md shadow-sm">
@@ -196,30 +197,73 @@
       </div>
     </div>
 
+    <!-- 2️⃣ 彈出式：詳細資料與卡片全面編輯視窗 (修復並升級版) -->
     <div x-show="isDetailOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" style="display: none;">
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden" @click.away="isDetailOpen = false">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col" @click.away="isDetailOpen = false">
         
-        <div class="h-64 bg-gray-900 flex items-center justify-center relative">
+        <!-- 大圖展示區（支援編輯模式下換照片） -->
+        <div class="h-64 bg-gray-900 flex items-center justify-center relative group/img">
           <template x-if="detailCoin.image">
             <img :src="detailCoin.image" class="w-full h-full object-contain">
           </template>
           <template x-if="!detailCoin.image">
-            <span class="text-gray-500 text-lg">📷 尚無照片</span>
+            <span class="text-gray-500 text-sm">📷 尚無照片</span>
           </template>
-          <button @click="isDetailOpen = false" class="absolute top-3 right-3 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center text-xl hover:bg-black/80">×</button>
+          
+          <!-- 編輯模式下的照片上傳覆蓋層 -->
+          <div x-show="isDetailEditMode" class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer">
+            <input type="file" accept="image/*" class="hidden" id="detail-coin-upload" @change="handleImageUpload($event, 'detail')" />
+            <label htmlFor="detail-coin-upload" class="cursor-pointer text-white text-sm bg-indigo-600/80 px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-600">
+              🔄 更換/新增照片
+            </label>
+          </div>
+          <button @click="isDetailOpen = false" x-show="!isDetailEditMode" class="absolute top-3 right-3 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center text-xl hover:bg-black/80">×</button>
         </div>
 
-        <div class="p-6 flex flex-col gap-4">
-          <div class="flex justify-between items-center">
-            <h3 class="text-xl font-bold text-gray-800" x-text="detailCoin.title"></h3>
-            <span class="text-xs bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-full font-semibold" x-text="detailCoin.category"></span>
+        <!-- 詳細文字資訊與表單切換 -->
+        <div class="p-6 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-18rem)]">
+          
+          <!-- 頂部按鈕：切換「編輯」與「唯讀」狀態 -->
+          <div class="flex justify-between items-center border-b pb-2">
+            <span class="text-xs font-bold text-gray-400 uppercase">收藏詳細內容</span>
+            <button 
+              @click="toggleDetailEditMode()"
+              :class="isDetailEditMode ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-gray-100 hover:bg-gray-200 text-indigo-600'"
+              class="text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shadow-sm"
+            >
+              <span x-text="isDetailEditMode ? '💾 儲存修改' : '✏️ 編輯這張卡片'"></span>
+            </button>
           </div>
 
-          <div class="bg-gray-50 p-3 rounded-lg border flex flex-col gap-1">
-            <span class="text-xs font-bold text-gray-400">收藏地點</span>
-            <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-gray-700" x-text="detailCoin.location"></span>
+          <!-- 1. 標題欄位 -->
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1">壓幣標題</label>
+            <div x-show="!isDetailEditMode" class="text-xl font-bold text-gray-800" x-text="detailCoin.title"></div>
+            <input x-show="isDetailEditMode" type="text" x-model="detailCoin.title" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-gray-800 bg-indigo-50/20" />
+          </div>
+
+          <!-- 2. 分類欄位 -->
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1">所屬分類</label>
+            <div x-show="!isDetailEditMode">
+              <span class="text-xs bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-full font-semibold" x-text="detailCoin.category"></span>
+            </div>
+            <select x-show="isDetailEditMode" x-model="detailCoin.category" class="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <template x-for="cat in categories" :key="cat">
+                <option :value="cat" x-text="cat"></option>
+              </template>
+            </select>
+          </div>
+
+          <!-- 3. 地點欄位 -->
+          <div class="bg-gray-50 p-3 rounded-lg border flex flex-col gap-1.5">
+            <label class="block text-xs font-bold text-gray-400（">收藏地點</label>
+            <div class="flex justify-between items-center gap-2">
+              <div x-show="!isDetailEditMode" class="text-sm font-medium text-gray-700" x-text="detailCoin.location"></div>
+              <input x-show="isDetailEditMode" type="text" x-model="detailCoin.location" class="w-full border bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              
               <a 
+                x-show="!isDetailEditMode"
                 :href="'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(detailCoin.location)" 
                 target="_blank"
                 class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-2.5 py-1.5 rounded font-medium flex items-center gap-1 shrink-0 transition"
@@ -229,26 +273,31 @@
             </div>
           </div>
 
-          <div class="flex flex-col gap-1">
-            <span class="text-xs font-bold text-gray-400">旅人備註</span>
+          <!-- 4. 旅人備註欄位 -->
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1">旅人備註</label>
             <textarea 
               x-model="detailCoin.notes" 
-              @input="updateCoinNotes(detailCoin.id, detailCoin.notes)"
+              :disabled="!isDetailEditMode"
               rows="3" 
-              placeholder="點擊這裡可以隨時修改或新增備註..." 
-              class="w-full border rounded-lg px-3 py-2 text-sm bg-indigo-50/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+              placeholder="寫下當時的心情、故事或機台的具體位置..." 
+              :class="isDetailEditMode ? 'bg-indigo-50/30 focus:bg-white focus:ring-2 focus:ring-indigo-500' : 'bg-gray-50/50 cursor-not-allowed'"
+              class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none transition"
             ></textarea>
           </div>
 
+          <!-- 底部資訊 -->
           <div class="border-t pt-3 flex justify-between items-center text-xs text-gray-400">
             <span x-text="'記錄日期：' + detailCoin.date"></span>
-            <button @click="isDetailOpen = false" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-1.5 rounded-lg font-medium transition">關閉</button>
+            <button @click="isDetailOpen = false" x-show="!isDetailEditMode" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-1.5 rounded-lg font-medium transition">關閉</button>
+            <button @click="isDetailEditMode = false" x-show="isDetailEditMode" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-1.5 rounded-lg font-medium transition">放棄修改</button>
           </div>
         </div>
 
       </div>
     </div>
 
+    <!-- 3️⃣ 彈出式：專屬新增分類視窗 -->
     <div x-show="isCatModalOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" style="display: none;">
       <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden" @click.away="isCatModalOpen = false">
         <div class="px-5 py-3 border-b flex justify-between items-center bg-gray-50">
@@ -278,7 +327,8 @@
         isNewCat: false,
         isDetailOpen: false,
         isCatModalOpen: false, 
-        isEditMode: false,     // 💡 新增：控制左側是否進入編輯狀態
+        isEditMode: false,     
+        isDetailEditMode: false, // 💡 新增：詳細視窗是否處於「編輯表單狀態」
         newCatInput: '',       
         selectedCategory: '全部',
         categories: [],
@@ -319,14 +369,24 @@
 
         openDetailModal(coin) {
           this.detailCoin = { ...coin };
+          this.isDetailEditMode = false; // 每次點開預設是乾淨的瀏覽模式
           this.isDetailOpen = true;
         },
 
-        updateCoinNotes(id, newNotes) {
-          const coin = this.coins.find(c => c.id === id);
-          if (coin) {
-            coin.notes = newNotes;
-            this.saveToStorage();
+        // 💡 核心功能：切換編輯狀態與儲存卡片變更
+        toggleDetailEditMode() {
+          if (this.isDetailEditMode) {
+            // 如果當前是編輯狀態，點擊就是「儲存」
+            const index = this.coins.findIndex(c => c.id === this.detailCoin.id);
+            if (index !== -1) {
+              // 把修改後的物件整組寫回陣列
+              this.coins[index] = { ...this.detailCoin };
+              this.saveToStorage();
+            }
+            this.isDetailEditMode = false;
+          } else {
+            // 如果當前是唯讀狀態，點擊就切換成「編輯表單」
+            this.isDetailEditMode = true;
           }
         },
 
@@ -369,11 +429,18 @@
           }
         },
 
-        handleImageUpload(event) {
+        // 💡 升級：支援指定要把照片寫入新增表單(form)還是詳細編輯表單(detail)
+        handleImageUpload(event, target) {
           const file = event.target.files[0];
           if (file) {
             const reader = new FileReader();
-            reader.onload = (e) => { this.form.image = e.target.result; };
+            reader.onload = (e) => { 
+              if (target === 'form') {
+                this.form.image = e.target.result;
+              } else if (target === 'detail') {
+                this.detailCoin.image = e.target.result;
+              }
+            };
             reader.readAsDataURL(file);
           }
         },
