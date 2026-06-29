@@ -251,4 +251,165 @@
 
     <div x-show="isCatModalOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" style="display: none;">
       <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden" @click.away="isCatModalOpen = false">
-        <div class="px-5 py-3 border-b flex justify-between
+        <div class="px-5 py-3 border-b flex justify-between items-center bg-gray-50">
+          <h3 class="font-bold text-gray-700 text-sm">➕ 建立新分類</h3>
+          <button @click="isCatModalOpen = false" class="text-gray-400 hover:text-gray-600 text-lg">×</button>
+        </div>
+        <div class="p-5 flex flex-col gap-3">
+          <input 
+            type="text" x-model="newCatInput" placeholder="例如：鐵道系列、歐洲行" 
+            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            @keyup.enter="addNewCategory()"
+          />
+          <div class="flex justify-end gap-2 text-sm">
+            <button @click="isCatModalOpen = false" class="px-3 py-1.5 border rounded text-gray-500 hover:bg-gray-50">取消</button>
+            <button @click="addNewCategory()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded shadow-sm font-medium">確認新增</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function coinApp() {
+      return {
+        isOpen: false,
+        isNewCat: false,
+        isDetailOpen: false,
+        isCatModalOpen: false, 
+        isEditMode: false,     // 💡 新增：控制左側是否進入編輯狀態
+        newCatInput: '',       
+        selectedCategory: '全部',
+        categories: [],
+        coins: [],
+        form: { title: '', category: '', newCategory: '', location: '', notes: '', image: '' },
+        detailCoin: { id: '', title: '', category: '', location: '', notes: '', date: '', image: '' },
+
+        init() {
+          const savedCategories = localStorage.getItem('coin_categories');
+          const savedCoins = localStorage.getItem('coin_data');
+          
+          this.categories = savedCategories ? JSON.parse(savedCategories) : ['台灣', '日本', '遊樂園', '博物館'];
+          this.coins = savedCoins ? JSON.parse(savedCoins) : [];
+          
+          if (!Array.isArray(this.categories) || this.categories.length === 0) {
+            this.categories = ['台灣', '日本', '遊樂園', '博物館'];
+          }
+          this.form.category = this.categories[0];
+          this.saveToStorage();
+        },
+
+        saveToStorage() {
+          localStorage.setItem('coin_categories', JSON.stringify(this.categories));
+          localStorage.setItem('coin_data', JSON.stringify(this.coins));
+        },
+
+        addNewCategory() {
+          if (this.newCatInput && this.newCatInput.trim()) {
+            const name = this.newCatInput.trim();
+            if (!this.categories.includes(name)) {
+              this.categories.push(name);
+              this.saveToStorage();
+              this.newCatInput = '';
+              this.isCatModalOpen = false;
+            } else { alert("這個分類已經存在囉！"); }
+          }
+        },
+
+        openDetailModal(coin) {
+          this.detailCoin = { ...coin };
+          this.isDetailOpen = true;
+        },
+
+        updateCoinNotes(id, newNotes) {
+          const coin = this.coins.find(c => c.id === id);
+          if (coin) {
+            coin.notes = newNotes;
+            this.saveToStorage();
+          }
+        },
+
+        openAddModal() {
+          this.form.category = this.categories[0] || '台灣';
+          this.isOpen = true;
+        },
+
+        editCategoryPrompt(oldName) {
+          const newName = prompt(`要把「${oldName}」分類修改為什麼名稱？`, oldName);
+          if (newName && newName.trim() && newName.trim() !== oldName) {
+            const trimmed = newName.trim();
+            const index = this.categories.indexOf(oldName);
+            if (index !== -1) this.categories[index] = trimmed;
+            this.coins.forEach(coin => { if (coin.category === oldName) coin.category = trimmed; });
+            if (this.selectedCategory === oldName) this.selectedCategory = trimmed;
+            this.saveToStorage();
+          }
+        },
+
+        deleteCategory(catName) {
+          const coinCount = this.getCategoryCount(catName);
+          let confirmMsg = `確定要刪除「${catName}」分類嗎？`;
+          if (coinCount > 0) confirmMsg = `「${catName}」分類下還有 ${coinCount} 個壓幣，刪除後將歸為「未分類」。確定刪除？`;
+          
+          if (confirm(confirmMsg)) {
+            this.categories = this.categories.filter(c => c !== catName);
+            this.coins.forEach(coin => { if (coin.category === catName) coin.category = '未分類'; });
+            if (coinCount > 0 && !this.categories.includes('未分類')) this.categories.push('未分類');
+            if (this.selectedCategory === catName) this.selectedCategory = '全部';
+            this.saveToStorage();
+          }
+        },
+
+        deleteCoin(id) {
+          if (confirm("確定要刪除這枚壓幣的收藏紀錄嗎？")) {
+            this.coins = this.coins.filter(c => c.id !== id);
+            this.saveToStorage();
+            this.isDetailOpen = false;
+          }
+        },
+
+        handleImageUpload(event) {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => { this.form.image = e.target.result; };
+            reader.readAsDataURL(file);
+          }
+        },
+
+        getCategoryCount(category) {
+          return this.coins.filter(c => c.category === category).length;
+        },
+
+        filteredCoins() {
+          if (this.selectedCategory === '全部') return this.coins;
+          return this.coins.filter(c => c.category === this.selectedCategory);
+        },
+
+        saveCoin() {
+          const finalCategory = this.isNewCat ? this.form.newCategory : this.form.category;
+          if (this.isNewCat && this.form.newCategory && !this.categories.includes(this.form.newCategory)) {
+            this.categories.push(this.form.newCategory);
+          }
+
+          this.coins.push({
+            id: Date.now(),
+            title: this.form.title,
+            category: finalCategory,
+            location: this.form.location,
+            notes: this.form.notes || '',
+            date: new Date().toISOString().split('T')[0],
+            image: this.form.image
+          });
+
+          this.saveToStorage();
+          this.isOpen = false;
+          this.isNewCat = false;
+          this.form = { title: '', category: this.categories[0] || '台灣', newCategory: '', location: '', notes: '', image: '' };
+        }
+      }
+    }
+  </script>
+</body>
+</html>
