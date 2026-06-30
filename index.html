@@ -26,45 +26,52 @@
 
   <div class="flex flex-col h-screen overflow-hidden">
     
-    <header class="flex flex-wrap md:flex-nowrap justify-between items-center gap-3 px-3 md:px-6 py-2.5 bg-[#FCFAF7] shadow-sm border-b border-[#EFEBE4] shrink-0 z-40 w-full">
-      <div class="flex items-center gap-1.5 min-w-0">
-        <button 
-          @click="isSidebarOpen = !isSidebarOpen" 
-          class="md:hidden text-[#6E5A58] hover:text-[#7A5C43] p-2 bg-[#F4EFE6] hover:bg-[#EAE2D5] rounded-lg border border-[#E3DAC9] text-base shrink-0"
-        >
-          ☰
-        </button>
-        <h1 class="brand-title text-base md:text-xl font-bold flex items-center gap-1 truncate text-[#5C4636]">
-          <span>🪙</span><span class="truncate tracking-wide">壓幣珍藏誌</span>
-        </h1>
-      </div>
-
-      <div class="flex bg-[#F4EFE6] p-1 rounded-xl border border-[#E3DAC9] mx-auto md:mx-2 shadow-inner shrink-0">
-        <button 
-          @click="switchTab('press')" 
-          :class="currentTab === 'press' ? 'bg-[#7A5C43] text-white shadow-sm' : 'text-[#6E5A58] hover:text-[#7A5C43]'"
-          class="px-4 py-1.5 rounded-lg text-xs md:text-sm font-bold transition duration-200 flex items-center gap-1"
-        >
-          <span>🔨</span><span>壓幣</span>
-        </button>
-        <button 
-          @click="switchTab('round')" 
-          :class="currentTab === 'round' ? 'bg-[#7A5C43] text-white shadow-sm' : 'text-[#6E5A58] hover:text-[#7A5C43]'"
-          class="px-4 py-1.5 rounded-lg text-xs md:text-sm font-bold transition duration-200 flex items-center gap-1"
-        >
-          <span>🟡</span><span>圓幣</span>
-        </button>
-      </div>
+<header class="bg-[#FCFAF7] shadow-sm border-b border-[#EFEBE4] shrink-0 z-40 w-full px-3 md:px-6 py-2">
       
-      <div class="flex items-center gap-1 shrink-0 ml-auto md:ml-0">
-        <button @click="exportData()" class="bg-[#F4EFE6] hover:bg-[#EAE2D5] text-[#5C4636] text-xs p-2 rounded-lg font-medium transition border border-[#E3DAC9]" title="備份">📥</button>
-        <button @click="$refs.importInput.click()" class="bg-[#F4EFE6] hover:bg-[#EAE2D5] text-[#5C4636] text-xs p-2 rounded-lg font-medium transition border border-[#E3DAC9]" title="還原">📤</button>
-        <input type="file" x-ref="importInput" accept=".json" class="hidden" @change="importData($event)">
-
-        <button @click="openAddModal()" class="bg-[#7A5C43] hover:bg-[#654C36] text-[#FCFAF7] px-3 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-0.5 text-xs md:text-sm">
-          <span>➕</span><span>記錄</span>
-        </button>
+      <div class="flex justify-between items-center w-full h-10">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <button 
+            @click="isSidebarOpen = !isSidebarOpen" 
+            class="md:hidden text-[#6E5A58] hover:text-[#7A5C43] p-1.5 bg-[#F4EFE6] hover:bg-[#EAE2D5] rounded-lg border border-[#E3DAC9] text-base shrink-0"
+          >
+            ☰
+          </button>
+          <h1 class="brand-title text-base md:text-xl font-bold flex items-center gap-1 truncate text-[#5C4636]">
+            <span>🪙</span><span class="truncate tracking-wide">壓幣珍藏誌</span>
+          </h1>
+        </div>
+        
+        <div class="flex items-center gap-1 shrink-0">
+          <button @click="exportData()" class="bg-[#F4EFE6] hover:bg-[#EAE2D5] text-[#5C4636] text-xs p-2 rounded-lg font-medium transition border border-[#E3DAC9]" title="備份">📥</button>
+          <button @click="$refs.importInput.click()" class="bg-[#F4EFE6] hover:bg-[#EAE2D5] text-[#5C4636] text-xs p-2 rounded-lg font-medium transition border border-[#E3DAC9]" title="還原">📤</button>
+        </div>
       </div>
+
+      <div class="flex justify-between items-center w-full mt-1.5 pt-1.5 border-t border-[#F4EFE6] md:border-t-0 md:mt-0 md:pt-0">
+        <div class="flex bg-[#F4EFE6] p-0.5 rounded-lg border border-[#E3DAC9] shadow-inner shrink-0">
+          <button 
+            @click="switchTab('press')" 
+            :class="currentTab === 'press' ? 'bg-[#7A5C43] text-white shadow-sm' : 'text-[#6E5A58] hover:text-[#7A5C43]'"
+            class="px-3 py-1 rounded-md text-xs md:text-sm font-bold transition duration-200 flex items-center gap-1"
+          >
+            <span>🔨</span><span>壓幣</span>
+          </button>
+          <button 
+            @click="switchTab('round')" 
+            :class="currentTab === 'round' ? 'bg-[#7A5C43] text-white shadow-sm' : 'text-[#6E5A58] hover:text-[#7A5C43]'"
+            class="px-3 py-1 rounded-md text-xs md:text-sm font-bold transition duration-200 flex items-center gap-1"
+          >
+            <span>🟡</span><span>圓幣</span>
+          </button>
+        </div>
+
+        <div class="shrink-0">
+          <button @click="openAddModal()" class="bg-[#7A5C43] hover:bg-[#654C36] text-[#FCFAF7] px-3.5 py-1.5 rounded-lg font-bold shadow-sm transition flex items-center gap-0.5 text-xs md:text-sm">
+            <span>➕</span><span>記錄</span>
+          </button>
+        </div>
+      </div>
+
     </header>
 
     <div class="flex flex-1 overflow-hidden relative">
