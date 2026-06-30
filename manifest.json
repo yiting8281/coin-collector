@@ -1,0 +1,17 @@
+{
+  "short_name": "壓幣珍藏",
+  "name": "🪙 壓幣珍藏誌 Coin Collector",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/8144/8144218.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#F3F4F6",
+  "theme_color": "#4F46E5",
+  "display": "standalone",
+  "orientation": "portrait"
+}
