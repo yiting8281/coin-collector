@@ -3,13 +3,13 @@
   "name": "🪙 壓幣珍藏誌 Coin Collector",
   "icons": [
     {
-      "src": "logo.png?v=999",
+      "src": "my-app-icon.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "logo.png?v=999",
+      "src": "my-app-icon.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
