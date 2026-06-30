@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🪙 壓幣珍藏誌 - 終極穩定版</title>
+  <title>🪙 壓幣珍藏誌 - PWA 備份版</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4F46E5">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -11,16 +15,35 @@
 
   <div class="flex flex-col h-screen">
     
-    <header class="flex justify-between items-center px-6 py-4 bg-white shadow-sm border-b">
+    <header class="flex justify-between items-center px-6 py-4 bg-white shadow-sm border-b shrink-0">
       <h1 class="text-xl font-bold flex items-center gap-2">
-        <span>🪙</span> 壓幣珍藏誌 Coin Collector
+        <span>🪙</span> 壓幣珍藏誌
       </h1>
-      <button 
-        @click="openAddModal()"
-        class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-1"
-      >
-        <span>➕</span> 記錄新壓幣
-      </button>
+      
+      <div class="flex items-center gap-2">
+        <button 
+          @click="exportData()"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-2 rounded-lg font-medium transition"
+          title="下載目前所有紀錄備份"
+        >
+          📥 備份
+        </button>
+        <button 
+          @click="$refs.importInput.click()"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-2 rounded-lg font-medium transition"
+          title="匯入之前的備份檔"
+        >
+          📤 還原
+        </button>
+        <input type="file" x-ref="importInput" accept=".json" class="hidden" @change="importData($event)">
+
+        <button 
+          @click="openAddModal()"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-1 text-sm"
+        >
+          <span>➕</span> 記錄新壓幣
+        </button>
+      </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
@@ -33,7 +56,7 @@
             :class="isEditMode ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'"
             class="text-xs px-2 py-1 rounded font-medium border transition flex items-center gap-1"
           >
-            <span x-text="isEditMode ? '✅ 完成' : '⚙️ 整理分類'"></span>
+            <span x-text="isEditMode ? '✅ 完成' : '⚙️ 整理'"></span>
           </button>
         </div>
 
@@ -85,7 +108,7 @@
       <main class="flex-1 p-6 overflow-y-auto bg-gray-100">
         <div class="mb-6">
           <h2 class="text-lg font-semibold text-gray-700">
-            Currently Browsing：<span class="text-indigo-600" x-text="selectedCategory"></span>
+            目前瀏覽分類：<span class="text-indigo-600" x-text="selectedCategory"></span>
           </h2>
         </div>
         
@@ -156,13 +179,13 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1">在哪裡壓的？（記錄地點）</label>
+            <label class="block text-sm font-medium text-gray-600 mb-1">在哪裡壓的？</label>
             <input type="text" required x-model="form.location" placeholder="例如：日本千葉縣迪士尼樂園" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-gray-600 mb-1">新增備註（選填）</label>
-            <textarea x-model="form.notes" rows="2" placeholder="寫下當時的心情或機台的具體位置..." class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <textarea x-model="form.notes" rows="2" placeholder="寫下具體機台的位置或心情..." class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
           </div>
 
           <div class="bg-gray-50 p-3 rounded-lg border">
@@ -305,6 +328,12 @@
   </div>
 
   <script>
+    // 註冊 Service Worker 讓網頁可以被「安裝」成 APP
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7fSk7')
+      .catch(err => console.log("PWA service worker 註冊狀態:", err));
+    }
+
     function coinApp() {
       return {
         isOpen: false,
@@ -322,7 +351,6 @@
         detailCoin: { id: '', title: '', category: '', location: '', notes: '', date: '', image: '' },
 
         init() {
-          // 💡 終極自癒程式碼：如果之前的資料結構壞掉了，自動在背景重置，絕不卡死
           try {
             const savedCategories = localStorage.getItem('coin_categories');
             const savedCoins = localStorage.getItem('coin_data');
@@ -344,6 +372,45 @@
         saveToStorage() {
           localStorage.setItem('coin_categories', JSON.stringify(this.categories));
           localStorage.setItem('coin_data', JSON.stringify(this.coins));
+        },
+
+        // 📥 一鍵備份下載功能
+        exportData() {
+          const backupData = {
+            categories: this.categories,
+            coins: this.coins,
+            exportTime: new Date().toLocaleString()
+          };
+          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.setAttribute("href", dataStr);
+          downloadAnchor.setAttribute("download", `壓幣珍藏誌_備份檔_${new Date().toISOString().split('T')[0]}.json`);
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          downloadAnchor.remove();
+        },
+
+        // 📤 一鍵還原讀取功能
+        importData(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const imported = JSON.parse(e.target.result);
+              if (imported.categories && imported.coins) {
+                if (confirm(`成功讀取備份！匯入將會覆蓋目前的紀錄（目前共 ${this.coins.length} 筆，備份檔共 ${imported.coins.length} 筆）。是否確定還原？`)) {
+                  this.categories = imported.categories;
+                  this.coins = imported.coins;
+                  this.saveToStorage();
+                  this.selectedCategory = '全部';
+                  alert('🎉 收藏誌還原成功！');
+                }
+              } else { alert('這好像不是正確的壓幣備份檔喔！'); }
+            } catch (err) { alert('檔案解析失敗，請確認檔案是否正確。'); }
+          };
+          reader.readAsText(file);
+          event.target.value = ''; // 清空選擇器
         },
 
         addNewCategory() {
@@ -419,9 +486,7 @@
         handleImageUpload(event, target) {
           const file = event.target.files[0];
           if (!file) return;
-
           this.compressStatus = '⚡ 正在壓縮相片...';
-
           const reader = new FileReader();
           reader.onload = (e) => {
             const img = new Image();
@@ -429,10 +494,8 @@
             img.onload = () => {
               const canvas = document.createElement('canvas');
               const ctx = canvas.getContext('2d');
-
               const maxW = 800;
               const scale = maxW / img.width;
-              
               if (img.width > maxW) {
                 canvas.width = maxW;
                 canvas.height = img.height * scale;
@@ -440,16 +503,10 @@
                 canvas.width = img.width;
                 canvas.height = img.height;
               }
-
               ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
               const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-
-              if (target === 'form') {
-                this.form.image = compressedBase64;
-              } else if (target === 'detail') {
-                this.detailCoin.image = compressedBase64;
-              }
-              
+              if (target === 'form') { this.form.image = compressedBase64; } 
+              else if (target === 'detail') { this.detailCoin.image = compressedBase64; }
               this.compressStatus = '✅ 壓縮完成！';
               setTimeout(() => { this.compressStatus = ''; }, 2000);
             };
@@ -471,7 +528,6 @@
           if (this.isNewCat && this.form.newCategory && !this.categories.includes(this.form.newCategory)) {
             this.categories.push(this.form.newCategory);
           }
-
           this.coins.push({
             id: Date.now(),
             title: this.form.title,
@@ -481,7 +537,6 @@
             date: new Date().toISOString().split('T')[0],
             image: this.form.image
           });
-
           this.saveToStorage();
           this.isOpen = false;
           this.isNewCat = false;
