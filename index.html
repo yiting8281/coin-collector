@@ -16,10 +16,9 @@
     @media (max-width: 380px) {
       .brand-title { font-size: 14px !important; }
     }
-    /* 讓滾動條也符合大地色系風格 */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #F4EFE6; }
-    ::-webkit-scrollbar-thumb { background: #CDBFA8; rounded-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: #CDBFA8; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #A8967E; }
   </style>
 </head>
@@ -72,14 +71,14 @@
       <div 
         x-show="isSidebarOpen" 
         @click="isSidebarOpen = false" 
-        x-transition:fade
-        class="md:hidden fixed inset-0 bg-black/30 backdrop-blur-xs z-30"
+        class="md:hidden fixed inset-0 bg-black/40 z-30"
         style="display: none;"
       ></div>
 
       <aside 
-        :class="isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'"
-        class="fixed md:static top-0 bottom-0 left-0 w-64 bg-[#FCFAF7] border-r border-[#EFEBE4] p-4 flex flex-col gap-1 overflow-y-auto select-none z-30 transition-transform duration-300 ease-in-out shrink-0"
+        x-show="window.innerWidth >= 768 || isSidebarOpen"
+        class="fixed md:static top-0 bottom-0 left-0 w-64 bg-[#FCFAF7] border-r border-[#EFEBE4] p-4 flex flex-col gap-1 overflow-y-auto select-none z-40 md:z-20 shrink-0 h-full"
+        style="display: none;"
       >
         <div class="flex md:hidden justify-between items-center mb-4 border-b border-[#EFEBE4] pb-2">
           <span class="font-bold text-[#5C4636]">📋 選單目錄</span>
@@ -151,7 +150,7 @@
         
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div x-show="filteredCoins().length === 0" class="col-span-full text-center py-12 text-[#A8967E] border-2 border-dashed border-[#CDBFA8] rounded-xl bg-[#FCFAF7] text-sm px-4">
-            目前這個分類還沒有壓幣，點擊右上角按鈕開始記錄吧！
+            Currently no coins in this category. Click button on top right to record!
           </div>
 
           <template x-for="coin in filteredCoins()" :key="coin.id">
@@ -361,4 +360,225 @@
           />
           <div class="flex justify-end gap-2 text-sm">
             <button @click="isCatModalOpen = false" class="px-3 py-1.5 border border-[#E3DAC9] rounded text-[#6E5A58] hover:bg-[#F4EFE6]">取消</button>
-            <button @click="addNew
+            <button @click="addNewCategory()" class="px-3 py-1.5 bg-[#7A5C43] hover:bg-[#654C36] text-white rounded shadow-sm font-medium">確認新增</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7fSk7')
+      .catch(err => console.log("PWA SW註冊失敗:", err));
+    }
+
+    function coinApp() {
+      return {
+        isOpen: false,
+        isNewCat: false,
+        isDetailOpen: false,
+        isCatModalOpen: false, 
+        isEditMode: false,     
+        isDetailEditMode: false, 
+        isSidebarOpen: false,   
+        compressStatus: '',     
+        newCatInput: '',       
+        selectedCategory: '全部',
+        categories: [],
+        coins: [],
+        form: { title: '', category: '', newCategory: '', location: '', notes: '', image: '' },
+        detailCoin: { id: '', title: '', category: '', location: '', notes: '', date: '', image: '' },
+
+        init() {
+          try {
+            const savedCategories = localStorage.getItem('coin_categories');
+            const savedCoins = localStorage.getItem('coin_data');
+            
+            this.categories = savedCategories ? JSON.parse(savedCategories) : ['台灣', '日本', '遊樂園', '博物館'];
+            this.coins = savedCoins ? JSON.parse(savedCoins) : [];
+            
+            if (!Array.isArray(this.categories) || this.categories.length === 0) {
+              this.categories = ['台灣', '日本', '遊樂園', '博物館'];
+            }
+          } catch(e) {
+            this.categories = ['台灣', '日本', '遊樂園', '博物館'];
+            this.coins = [];
+          }
+          this.form.category = this.categories[0];
+          this.saveToStorage();
+        },
+
+        saveToStorage() {
+          localStorage.setItem('coin_categories', JSON.stringify(this.categories));
+          localStorage.setItem('coin_data', JSON.stringify(this.coins));
+        },
+
+        exportData() {
+          const backupData = { categories: this.categories, coins: this.coins, exportTime: new Date().toLocaleString() };
+          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.setAttribute("href", dataStr);
+          downloadAnchor.setAttribute("download", `壓幣珍藏誌_備份檔_${new Date().toISOString().split('T')[0]}.json`);
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          downloadAnchor.remove();
+        },
+
+        importData(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const imported = JSON.parse(e.target.result);
+              if (imported.categories && imported.coins) {
+                if (confirm(`成功讀取備份！匯入將會覆蓋目前的紀錄（目前共 ${this.coins.length} 筆，備份檔共 ${imported.coins.length} 筆）。是否確定還原？`)) {
+                  this.categories = imported.categories;
+                  this.coins = imported.coins;
+                  this.saveToStorage();
+                  this.selectedCategory = '全部';
+                  alert('🎉 收藏誌還原成功！');
+                }
+              } else { alert('這好像不是正確的壓幣備份檔喔！'); }
+            } catch (err) { alert('檔案解析失敗。'); }
+          };
+          reader.readAsText(file);
+          event.target.value = '';
+        },
+
+        addNewCategory() {
+          if (this.newCatInput && this.newCatInput.trim()) {
+            const name = this.newCatInput.trim();
+            if (!this.categories.includes(name)) {
+              this.categories.push(name);
+              this.saveToStorage();
+              this.newCatInput = '';
+              this.isCatModalOpen = false;
+            } else { alert("這個分類已經存在囉！"); }
+          }
+        },
+
+        openDetailModal(coin) {
+          this.detailCoin = { ...coin };
+          this.isDetailEditMode = false; 
+          this.isDetailOpen = true;
+        },
+
+        toggleDetailEditMode() {
+          if (this.isDetailEditMode) {
+            const index = this.coins.findIndex(c => c.id === this.detailCoin.id);
+            if (index !== -1) {
+              this.coins[index] = { ...this.detailCoin };
+              this.saveToStorage();
+            }
+            this.isDetailEditMode = false;
+          } else {
+            this.isDetailEditMode = true;
+          }
+        },
+
+        openAddModal() {
+          this.form.category = this.categories[0] || '台灣';
+          this.isOpen = true;
+        },
+
+        editCategoryPrompt(oldName) {
+          const name = prompt(`要把「${oldName}」分類修改為什麼名稱？`, oldName);
+          if (name && name.trim() && name.trim() !== oldName) {
+            const trimmed = name.trim();
+            const index = this.categories.indexOf(oldName);
+            if (index !== -1) this.categories[index] = trimmed;
+            this.coins.forEach(coin => { if (coin.category === oldName) coin.category = trimmed; });
+            if (this.selectedCategory === oldName) this.selectedCategory = trimmed;
+            this.saveToStorage();
+          }
+        },
+
+        deleteCategory(catName) {
+          const coinCount = this.getCategoryCount(catName);
+          let confirmMsg = `確定要刪除「${catName}」分類嗎？`;
+          if (coinCount > 0) confirmMsg = `「${catName}」分類下還有 ${coinCount} 個壓幣，刪除後將歸為「未分類」。確定刪除？`;
+          
+          if (confirm(confirmMsg)) {
+            this.categories = this.categories.filter(c => c !== catName);
+            this.coins.forEach(coin => { if (coin.category === catName) coin.category = '未分類'; });
+            if (coinCount > 0 && !this.categories.includes('未分類')) this.categories.push('未分類');
+            if (this.selectedCategory === catName) this.selectedCategory = '全部';
+            this.saveToStorage();
+          }
+        },
+
+        deleteCoin(id) {
+          if (confirm("確定要刪除這枚壓幣的收藏紀錄嗎？")) {
+            this.coins = this.coins.filter(c => c.id !== id);
+            this.saveToStorage();
+            this.isDetailOpen = false;
+          }
+        },
+
+        handleImageUpload(event, target) {
+          const file = event.target.files[0];
+          if (!file) return;
+          this.compressStatus = '⚡ 正在壓縮相片...';
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              const maxW = 800;
+              const scale = maxW / img.width;
+              if (img.width > maxW) {
+                canvas.width = maxW;
+                canvas.height = img.height * scale;
+              } else {
+                canvas.width = img.width;
+                canvas.height = img.height;
+              }
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+              if (target === 'form') { this.form.image = compressedBase64; } 
+              else if (target === 'detail') { this.detailCoin.image = compressedBase64; }
+              this.compressStatus = '✅ 壓縮完成！';
+              setTimeout(() => { this.compressStatus = ''; }, 2000);
+            };
+          };
+          reader.readAsDataURL(file);
+        },
+
+        getCategoryCount(category) {
+          return this.coins.filter(c => c.category === category).length;
+        },
+
+        filteredCoins() {
+          if (this.selectedCategory === '全部') return this.coins;
+          return this.coins.filter(c => c.category === this.selectedCategory);
+        },
+
+        saveCoin() {
+          const finalCategory = this.isNewCat ? this.form.newCategory : this.form.category;
+          if (this.isNewCat && this.form.newCategory && !this.categories.includes(this.form.newCategory)) {
+            this.categories.push(this.form.newCategory);
+          }
+          this.coins.push({
+            id: Date.now(),
+            title: this.form.title,
+            category: finalCategory,
+            location: this.form.location,
+            notes: this.form.notes || '',
+            date: new Date().toISOString().split('T')[0],
+            image: this.form.image
+          });
+          this.saveToStorage();
+          this.isOpen = false;
+          this.isNewCat = false;
+          this.form = { title: '', category: this.categories[0] || '台灣', newCategory: '', location: '', notes: '', image: '' };
+        }
+      }
+    }
+  </script>
+</body>
+</html>
