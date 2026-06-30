@@ -2,66 +2,67 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🪙 壓幣珍藏誌 - 手機智慧優化版</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🪙 壓幣珍藏誌 - 完美手機版</title>
   
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4F46E5">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <style>
+    /* 針對極窄手機的微調 */
+    @media (max-width: 380px) {
+      .brand-title { font-size: 14px !important; }
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans" x-data="coinApp()" x-init="init()">
+<body class="bg-gray-50 text-gray-800 font-sans antialiased" x-data="coinApp()" x-init="init()">
 
   <div class="flex flex-col h-screen overflow-hidden">
     
-    <!-- 頂部導覽列 -->
-    <header class="flex justify-between items-center px-4 md:px-6 py-3.5 bg-white shadow-sm border-b shrink-0 z-40">
-      <div class="flex items-center gap-2">
-        <!-- 💡 手機版專屬：☰ 按鈕，只在手機顯示 -->
+    <header class="flex justify-between items-center px-3 md:px-6 py-2.5 bg-white shadow-sm border-b shrink-0 z-40">
+      <div class="flex items-center gap-1.5 min-w-0">
         <button 
           @click="isSidebarOpen = !isSidebarOpen" 
-          class="md:hidden text-gray-600 hover:text-indigo-600 p-1.5 bg-gray-50 hover:bg-gray-100 rounded-lg border text-lg"
+          class="md:hidden text-gray-600 hover:text-indigo-600 p-2 bg-gray-50 hover:bg-gray-100 rounded-lg border text-base shrink-0"
           title="開啟選單"
         >
           ☰
         </button>
-        <h1 class="text-base md:text-xl font-bold flex items-center gap-1.5">
-          <span>🪙</span> <span class="hidden xs:inline">壓幣珍藏誌</span>
+        <h1 class="brand-title text-base md:text-xl font-bold flex items-center gap-1 truncate">
+          <span>🪙</span><span class="truncate">壓幣珍藏誌</span>
         </h1>
       </div>
       
-      <!-- 右上角功能區（手機自動縮減文字防擠壓） -->
-      <div class="flex items-center gap-1.5 md:gap-2">
+      <div class="flex items-center gap-1 md:gap-2 shrink-0">
         <button 
           @click="exportData()"
-          class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-medium transition"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs p-2 md:px-3 md:py-2 rounded-lg font-medium transition"
           title="下載目前所有紀錄備份"
         >
-          📥 <span class="hidden md:inline">備份</span>
+          📥<span class="hidden md:inline"> 備份</span>
         </button>
         <button 
           @click="$refs.importInput.click()"
-          class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-2.5 py-1.5 md:px-3 md:py-2 rounded-lg font-medium transition"
+          class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs p-2 md:px-3 md:py-2 rounded-lg font-medium transition"
           title="匯入之前的備份檔"
         >
-          📤 <span class="hidden md:inline">還原</span>
+          📤<span class="hidden md:inline"> 還原</span>
         </button>
         <input type="file" x-ref="importInput" accept=".json" class="hidden" @change="importData($event)">
 
         <button 
           @click="openAddModal()"
-          class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-1 text-xs md:text-sm"
+          class="bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-2 md:px-4 md:py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-0.5 text-xs md:text-sm"
         >
-          <span>➕</span> 記錄<span class="hidden md:inline">新壓幣</span>
+          <span>➕</span><span>記錄</span><span class="hidden md:inline">新壓幣</span>
         </button>
       </div>
     </header>
 
-    <!-- 下方主要內容區 -->
     <div class="flex flex-1 overflow-hidden relative">
       
-      <!-- 💡 手機版遮罩層：當側欄打開時，點擊右邊黑暗處會自動收起 -->
       <div 
         x-show="isSidebarOpen" 
         @click="isSidebarOpen = false" 
@@ -70,12 +71,10 @@
         style="display: none;"
       ></div>
 
-      <!-- 左邊選項欄：分類管理（寬度從72縮減至64，並支援手機側滑/收合） -->
       <aside 
         :class="isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'"
         class="fixed md:static top-0 bottom-0 left-0 w-64 bg-white border-r p-4 flex flex-col gap-1 overflow-y-auto select-none z-30 transition-transform duration-300 ease-in-out shrink-0"
       >
-        <!-- 手機版選單頂部（可關閉） -->
         <div class="flex md:hidden justify-between items-center mb-4 border-b pb-2">
           <span class="font-bold text-gray-700">📋 選單目錄</span>
           <button @click="isSidebarOpen = false" class="text-gray-400 text-xl px-2">×</button>
@@ -137,29 +136,26 @@
         </template>
       </aside>
 
-      <!-- 右邊主內容區 -->
       <main class="flex-1 p-4 md:p-6 overflow-y-auto bg-gray-100 w-full">
-        <div class="mb-4 md:mb-6">
-          <h2 class="text-sm md:text-lg font-semibold text-gray-700">
-            目前瀏覽分類：<span class="text-indigo-600" x-text="selectedCategory"></span>
+        <div class="mb-4">
+          <h2 class="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wider">
+            目前流覽：<span class="text-indigo-600 font-bold" x-text="selectedCategory"></span>
           </h2>
         </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          <div x-show="filteredCoins().length === 0" class="col-span-full text-center py-12 text-gray-400 border-2 border-dashed border-gray-300 rounded-xl bg-white">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div x-show="filteredCoins().length === 0" class="col-span-full text-center py-12 text-gray-400 border-2 border-dashed border-gray-300 rounded-xl bg-white text-sm px-4">
             目前這個分類還沒有壓幣，點擊右上角按鈕開始記錄吧！
           </div>
 
-          <!-- 壓幣卡片 -->
           <template x-for="coin in filteredCoins()" :key="coin.id">
             <div 
               @click="openDetailModal(coin)"
               class="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition relative group/card cursor-pointer"
             >
-              <!-- 刪除小叉叉在手機上稍微加大方便觸控，且在手機上直接顯示 -->
               <button 
                 @click.stop="deleteCoin(coin.id)" 
-                class="absolute top-2 right-2 bg-black/40 hover:bg-red-600 text-white w-7 h-7 md:w-6 md:h-6 rounded-full text-xs flex items-center justify-center md:opacity-0 group-hover/card:opacity-100 transition z-10 font-bold"
+                class="absolute top-2 right-2 bg-black/40 hover:bg-red-600 text-white w-7 h-7 md:w-6 md:h-6 rounded-full text-sm flex items-center justify-center md:opacity-0 group-hover/card:opacity-100 transition z-10 font-bold"
               >
                 ×
               </button>
@@ -172,15 +168,15 @@
                   <span class="text-gray-400 text-sm">📷 無照片</span>
                 </template>
               </div>
-              <div class="p-4 flex flex-col gap-1.5">
+              <div class="p-3.5 flex flex-col gap-1">
                 <div class="flex justify-between items-start gap-2">
                   <h3 class="font-bold text-gray-800 text-sm md:text-base truncate" x-text="coin.title"></h3>
-                  <span class="text-[10px] md:text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full shrink-0" x-text="coin.category"></span>
+                  <span class="text-[10px] bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded shrink-0 font-medium" x-text="coin.category"></span>
                 </div>
-                <p class="text-xs md:text-sm text-gray-500 truncate flex items-center gap-1">
+                <p class="text-xs text-gray-500 truncate flex items-center gap-1">
                   <span>📍</span> <span x-text="coin.location"></span>
                 </p>
-                <p class="text-[11px] md:text-xs text-gray-400 truncate italic" x-text="coin.notes ? '💬 ' + coin.notes : '無備註'"></p>
+                <p class="text-[11px] text-gray-400 truncate italic" x-text="coin.notes ? '💬 ' + coin.notes : '無備註'"></p>
               </div>
             </div>
           </template>
@@ -188,24 +184,23 @@
       </main>
     </div>
 
-    <!-- 1️⃣ 新增壓幣視窗 -->
     <div x-show="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" style="display: none;" x-transition>
       <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden" @click.away="isOpen = false">
-        <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-          <h3 class="font-bold text-gray-700">記錄我的全新壓幣</h3>
+        <div class="px-5 py-3.5 border-b flex justify-between items-center bg-gray-50">
+          <h3 class="font-bold text-gray-700 text-sm">記錄我的全新壓幣</h3>
           <button @click="isOpen = false" class="text-gray-400 hover:text-gray-600 text-xl">×</button>
         </div>
         
         <form class="p-4 md:p-6 flex flex-col gap-3 md:gap-4 overflow-y-auto max-h-[calc(100vh-8rem)]" @submit.prevent="saveCoin()">
           <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1">壓幣標題</label>
+            <label class="block text-xs font-medium text-gray-500 mb-1">壓幣標題</label>
             <input type="text" required x-model="form.title" placeholder="例如：東京迪士尼樂園米奇限定款" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
 
           <div>
             <div class="flex justify-between items-center mb-1">
-              <label class="block text-sm font-medium text-gray-600">選擇分類</label>
-              <button type="button" @click="isNewCat = !isNewCat" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium" x-text="isNewCat ? '⬅️ 選取現有分類' : '➕ 自訂新分類'"></button>
+              <label class="block text-xs font-medium text-gray-500">選擇分類</label>
+              <button type="button" @click="isNewCat = !isNewCat" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium" x-text="isNewCat ? '⬅️ 選取現有' : '➕ 新增分類'"></button>
             </div>
             <div x-show="isNewCat">
               <input type="text" x-model="form.newCategory" :required="isNewCat" placeholder="請輸入新分類名稱" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -220,23 +215,23 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1">在哪裡壓的？</label>
+            <label class="block text-xs font-medium text-gray-500 mb-1">在哪裡壓的？</label>
             <input type="text" required x-model="form.location" placeholder="例如：日本千葉縣迪士尼樂園" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1">新增備註（選填）</label>
+            <label class="block text-xs font-medium text-gray-500 mb-1">新增備註（選填）</label>
             <textarea x-model="form.notes" rows="2" placeholder="寫下具體機台的位置或心情..." class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
           </div>
 
           <div class="bg-gray-50 p-3 rounded-lg border">
-            <label class="block text-sm font-medium text-gray-600 mb-2 font-semibold flex justify-between">
+            <label class="block text-xs font-medium text-gray-500 mb-1.5 font-semibold flex justify-between">
               <span>上傳壓幣照片</span>
               <span class="text-xs text-indigo-500 font-normal" x-text="compressStatus"></span>
             </label>
             <input 
               type="file" accept="image/*" 
-              class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 file:cursor-pointer hover:file:bg-indigo-100" 
+              class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 file:cursor-pointer hover:file:bg-indigo-100" 
               @change="handleImageUpload($event, 'form')" 
             />
             <div x-show="form.image" class="mt-3 flex justify-center">
@@ -244,7 +239,7 @@
             </div>
           </div>
 
-          <div class="flex gap-3 justify-end mt-2 shrink-0">
+          <div class="flex gap-3 justify-end mt-1 shrink-0">
             <button type="button" @click="isOpen = false" class="px-4 py-2 border rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">取消</button>
             <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm">確認儲存</button>
           </div>
@@ -252,11 +247,10 @@
       </div>
     </div>
 
-    <!-- 2️⃣ 詳細資料視窗 -->
     <div x-show="isDetailOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" style="display: none;" x-transition>
       <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col" @click.away="isDetailOpen = false">
         
-        <div class="h-56 md:h-64 bg-gray-900 flex items-center justify-center relative">
+        <div class="h-52 md:h-64 bg-gray-900 flex items-center justify-center relative">
           <template x-if="detailCoin.image">
             <img :src="detailCoin.image" class="w-full h-full object-contain">
           </template>
@@ -266,7 +260,7 @@
           <button @click="isDetailOpen = false" x-show="!isDetailEditMode" class="absolute top-3 right-3 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center text-xl hover:bg-black/80">×</button>
         </div>
 
-        <div class="p-5 md:p-6 flex flex-col gap-3 md:gap-4 overflow-y-auto max-h-[calc(100vh-16rem)]">
+        <div class="p-4 md:p-6 flex flex-col gap-3 md:gap-4 overflow-y-auto max-h-[calc(100vh-15rem)]">
           <div class="flex justify-between items-center border-b pb-2">
             <span class="text-xs font-bold text-gray-400 uppercase">收藏詳細內容</span>
             <button 
@@ -274,7 +268,7 @@
               :class="isDetailEditMode ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-gray-100 hover:bg-gray-200 text-indigo-600'"
               class="text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1 shadow-sm"
             >
-              <span x-text="isDetailEditMode ? '💾 儲存修改' : '✏️ 編輯這張卡片'"></span>
+              <span x-text="isDetailEditMode ? '💾 儲存修改' : '✏️ 編輯卡片'"></span>
             </button>
           </div>
 
@@ -285,13 +279,13 @@
             </label>
             <input 
               type="file" accept="image/*" 
-              class="w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-100 file:text-indigo-700 file:cursor-pointer hover:file:bg-indigo-200" 
+              class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-100 file:text-indigo-700 file:cursor-pointer hover:file:bg-indigo-200" 
               @change="handleImageUpload($event, 'detail')" 
             />
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-gray-400 mb-1">壓幣標題</label>
+            <label class="block text-xs font-bold text-gray-400 mb-0.5">壓幣標題</label>
             <div x-show="!isDetailEditMode" class="text-base md:text-xl font-bold text-gray-800" x-text="detailCoin.title"></div>
             <input x-show="isDetailEditMode" type="text" x-model="detailCoin.title" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-gray-800 bg-indigo-50/20" />
           </div>
@@ -311,14 +305,14 @@
           <div class="bg-gray-50 p-3 rounded-lg border flex flex-col gap-1.5">
             <label class="block text-xs font-bold text-gray-400">收藏地點</label>
             <div class="flex justify-between items-center gap-2">
-              <div x-show="!isDetailEditMode" class="text-xs md:text-sm font-medium text-gray-700" x-text="detailCoin.location"></div>
+              <div x-show="!isDetailEditMode" class="text-xs md:text-sm font-medium text-gray-700 truncate" x-text="detailCoin.location"></div>
               <input x-show="isDetailEditMode" type="text" x-model="detailCoin.location" class="w-full border bg-white rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               
               <a 
                 x-show="!isDetailEditMode"
                 :href="'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(detailCoin.location)" 
                 target="_blank"
-                class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] px-2.5 py-1.5 rounded font-medium flex items-center gap-1 shrink-0 transition"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] px-2.5 py-1.5 rounded font-medium flex items-center gap-1 shrink-0 transition shadow-sm"
               >
                 🗺️ 地圖
               </a>
@@ -331,23 +325,22 @@
               x-model="detailCoin.notes" 
               :disabled="!isDetailEditMode"
               rows="3" 
-              placeholder="寫下當時的心情或位置..." 
+              placeholder="寫下當時的心情..." 
               :class="isDetailEditMode ? 'bg-indigo-50/30 focus:bg-white focus:ring-2 focus:ring-indigo-500' : 'bg-gray-50/50 cursor-not-allowed'"
               class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none transition"
             ></textarea>
           </div>
 
-          <div class="border-t pt-3 flex justify-between items-center text-xs text-gray-400 shrink-0">
-            <span x-text="'記錄日期：' + detailCoin.date"></span>
-            <button @click="isDetailOpen = false" x-show="!isDetailEditMode" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-1.5 rounded-lg font-medium transition">關閉</button>
-            <button @click="isDetailEditMode = false" x-show="isDetailEditMode" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-1.5 rounded-lg font-medium transition">放棄</button>
+          <div class="border-t pt-3 flex justify-between items-center text-[11px] text-gray-400 shrink-0">
+            <span x-text="'日期：' + detailCoin.date"></span>
+            <button @click="isDetailOpen = false" x-show="!isDetailEditMode" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg font-medium transition">關閉</button>
+            <button @click="isDetailEditMode = false" x-show="isDetailEditMode" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg font-medium transition">放棄</button>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- 3️⃣ 建立新分類視窗 -->
     <div x-show="isCatModalOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" style="display: none;" x-transition>
       <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden" @click.away="isCatModalOpen = false">
         <div class="px-5 py-3 border-b flex justify-between items-center bg-gray-50">
@@ -384,7 +377,7 @@
         isCatModalOpen: false, 
         isEditMode: false,     
         isDetailEditMode: false, 
-        isSidebarOpen: false,   // 💡 新增：控制手機版側欄是否展開
+        isSidebarOpen: false,   
         compressStatus: '',     
         newCatInput: '',       
         selectedCategory: '全部',
