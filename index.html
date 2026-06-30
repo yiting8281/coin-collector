@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🪙 壓幣珍藏誌 - 解鎖復活版</title>
+  <title>🪙 壓幣珍藏誌 - 點擊解鎖終極版</title>
 
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -175,13 +175,17 @@
               <span>上傳壓幣照片</span>
               <span class="text-xs text-indigo-500 font-normal" x-text="compressStatus"></span>
             </label>
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-500 transition cursor-pointer bg-gray-50 relative">
-              <input type="file" accept="image/*" class="hidden" id="coin-upload" @change="handleImageUpload($event, 'form')" />
-              <label for="coin-upload" class="cursor-pointer text-sm text-gray-500 flex flex-col items-center gap-1 w-full h-full block">
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-indigo-500 transition bg-gray-50 relative h-36 flex items-center justify-center overflow-hidden">
+              <input 
+                type="file" accept="image/*" 
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" 
+                @change="handleImageUpload($event, 'form')" 
+              />
+              <div class="text-sm text-gray-500 flex flex-col items-center gap-1 z-10">
                 <span x-show="!form.image">📸 點擊這裡選擇照片</span>
-                <img x-show="form.image" :src="form.image" class="max-h-32 object-contain rounded-md shadow-sm">
-                <span x-show="form.image" class="text-xs text-indigo-500 underline mt-1">更換照片</span>
-              </label>
+                <img x-show="form.image" :src="form.image" class="max-h-28 object-contain rounded-md shadow-sm">
+                <span x-show="form.image" class="text-xs text-indigo-500 underline mt-0.5">更換照片</span>
+              </div>
             </div>
           </div>
 
@@ -194,4 +198,33 @@
     </div>
 
     <div x-show="isDetailOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" style="display: none;">
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col" @click.away="is
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col" @click.away="isDetailOpen = false">
+        
+        <div class="h-64 bg-gray-900 flex items-center justify-center relative group/img">
+          <template x-if="detailCoin.image">
+            <img :src="detailCoin.image" class="w-full h-full object-contain">
+          </template>
+          <template x-if="!detailCoin.image">
+            <span class="text-gray-500 text-sm">📷 尚無照片</span>
+          </template>
+          
+          <div x-show="isDetailEditMode" class="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer z-20">
+            <input 
+              type="file" accept="image/*" 
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30" 
+              @change="handleImageUpload($event, 'detail')" 
+            />
+            <div class="text-white text-sm bg-indigo-600/80 px-4 py-2 rounded-lg font-medium flex flex-col items-center gap-1 z-10">
+              <span>🔄 更換/新增照片</span>
+              <span class="text-[10px] text-gray-300 font-normal" x-text="compressStatus"></span>
+            </div>
+          </div>
+          <button @click="isDetailOpen = false" x-show="!isDetailEditMode" class="absolute top-3 right-3 bg-black/60 text-white w-8 h-8 rounded-full flex items-center justify-center text-xl hover:bg-black/80 z-10">×</button>
+        </div>
+
+        <div class="p-6 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-18rem)]">
+          <div class="flex justify-between items-center border-b pb-2">
+            <span class="text-xs font-bold text-gray-400 uppercase">收藏詳細內容</span>
+            <button 
+              @click="toggleDetailEditMode()"
+              :class="isDetailEditMode ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-gray-100 hover:bg
