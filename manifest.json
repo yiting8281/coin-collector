@@ -3,7 +3,7 @@
   "name": "🪙 壓幣珍藏誌 Coin Collector",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/8144/8144218.png",
+      "src": "./logo.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
