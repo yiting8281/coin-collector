@@ -3,14 +3,20 @@
   "name": "🪙 壓幣珍藏誌 Coin Collector",
   "icons": [
     {
-      "src": "./logo.png",
+      "src": "logo.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "start_url": "./index.html",
-  "background_color": "#F3F4F6",
+  "background_color": "#FFFFFF",
   "theme_color": "#4F46E5",
   "display": "standalone",
   "orientation": "portrait"
