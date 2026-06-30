@@ -4,11 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🪙 壓幣珍藏誌 - 終極穩定版</title>
-
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
@@ -90,7 +85,7 @@
       <main class="flex-1 p-6 overflow-y-auto bg-gray-100">
         <div class="mb-6">
           <h2 class="text-lg font-semibold text-gray-700">
-            目前瀏覽分類：<span class="text-indigo-600" x-text="selectedCategory"></span>
+            Currently Browsing：<span class="text-indigo-600" x-text="selectedCategory"></span>
           </h2>
         </div>
         
@@ -327,14 +322,20 @@
         detailCoin: { id: '', title: '', category: '', location: '', notes: '', date: '', image: '' },
 
         init() {
-          const savedCategories = localStorage.getItem('coin_categories');
-          const savedCoins = localStorage.getItem('coin_data');
-          
-          this.categories = savedCategories ? JSON.parse(savedCategories) : ['台灣', '日本', '遊樂園', '博物館'];
-          this.coins = savedCoins ? JSON.parse(savedCoins) : [];
-          
-          if (!Array.isArray(this.categories) || this.categories.length === 0) {
+          // 💡 終極自癒程式碼：如果之前的資料結構壞掉了，自動在背景重置，絕不卡死
+          try {
+            const savedCategories = localStorage.getItem('coin_categories');
+            const savedCoins = localStorage.getItem('coin_data');
+            
+            this.categories = savedCategories ? JSON.parse(savedCategories) : ['台灣', '日本', '遊樂園', '博物館'];
+            this.coins = savedCoins ? JSON.parse(savedCoins) : [];
+            
+            if (!Array.isArray(this.categories) || this.categories.length === 0) {
+              this.categories = ['台灣', '日本', '遊樂園', '博物館'];
+            }
+          } catch(e) {
             this.categories = ['台灣', '日本', '遊樂園', '博物館'];
+            this.coins = [];
           }
           this.form.category = this.categories[0];
           this.saveToStorage();
