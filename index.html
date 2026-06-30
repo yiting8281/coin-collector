@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>🪙 壓幣珍藏誌 - 完美手機版</title>
   
+  <!-- 引入 APP 設定檔與強制圖標刷新 -->
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="logo.png?v=999">
+  <link rel="icon" type="image/png" href="logo.png?v=999">
   <meta name="theme-color" content="#4F46E5">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
   <style>
-    /* 針對極窄手機的微調 */
     @media (max-width: 380px) {
       .brand-title { font-size: 14px !important; }
     }
@@ -21,6 +23,7 @@
 
   <div class="flex flex-col h-screen overflow-hidden">
     
+    <!-- 頂部導覽列 -->
     <header class="flex justify-between items-center px-3 md:px-6 py-2.5 bg-white shadow-sm border-b shrink-0 z-40">
       <div class="flex items-center gap-1.5 min-w-0">
         <button 
@@ -61,8 +64,10 @@
       </div>
     </header>
 
+    <!-- 下方主要內容區 -->
     <div class="flex flex-1 overflow-hidden relative">
       
+      <!-- 手機版遮罩層 -->
       <div 
         x-show="isSidebarOpen" 
         @click="isSidebarOpen = false" 
@@ -71,6 +76,7 @@
         style="display: none;"
       ></div>
 
+      <!-- 左邊選項欄 -->
       <aside 
         :class="isSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'"
         class="fixed md:static top-0 bottom-0 left-0 w-64 bg-white border-r p-4 flex flex-col gap-1 overflow-y-auto select-none z-30 transition-transform duration-300 ease-in-out shrink-0"
@@ -136,6 +142,7 @@
         </template>
       </aside>
 
+      <!-- 右邊主內容區 -->
       <main class="flex-1 p-4 md:p-6 overflow-y-auto bg-gray-100 w-full">
         <div class="mb-4">
           <h2 class="text-xs md:text-sm font-semibold text-gray-500 uppercase tracking-wider">
@@ -148,6 +155,7 @@
             目前這個分類還沒有壓幣，點擊右上角按鈕開始記錄吧！
           </div>
 
+          <!-- 壓幣卡片 -->
           <template x-for="coin in filteredCoins()" :key="coin.id">
             <div 
               @click="openDetailModal(coin)"
@@ -184,6 +192,7 @@
       </main>
     </div>
 
+    <!-- 1️⃣ 新增壓幣視窗 -->
     <div x-show="isOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" style="display: none;" x-transition>
       <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden" @click.away="isOpen = false">
         <div class="px-5 py-3.5 border-b flex justify-between items-center bg-gray-50">
@@ -247,6 +256,7 @@
       </div>
     </div>
 
+    <!-- 2️⃣ 詳細資料視窗 -->
     <div x-show="isDetailOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" style="display: none;" x-transition>
       <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col" @click.away="isDetailOpen = false">
         
@@ -341,6 +351,7 @@
       </div>
     </div>
 
+    <!-- 3️⃣ 建立新分類視窗 -->
     <div x-show="isCatModalOpen" class="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4" style="display: none;" x-transition>
       <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden" @click.away="isCatModalOpen = false">
         <div class="px-5 py-3 border-b flex justify-between items-center bg-gray-50">
@@ -349,7 +360,7 @@
         </div>
         <div class="p-5 flex flex-col gap-3">
           <input 
-            type="text" x-model="newCatInput" placeholder="例如：鐵道系列、歐洲行" 
+            type="text" x-model="newCatInput" placeholder="Ref: 鐵道系列、歐洲行" 
             class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             @keyup.enter="addNewCategory()"
           />
